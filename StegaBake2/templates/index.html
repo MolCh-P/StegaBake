@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>StegaBake</title>
+</head>
+<body>
+    <header>
+        <h1>StegaBake</h1>
+        <p>Oculta y revela mensajes dentro de recetas de manera segura.</p>
+    </header>
+    <main>
+        <h2>¿Qué deseas hacer?</h2>
+        <button onclick="redirectTo('{{ url_for('hideMessage') }}')">Esconder Mensaje</button>
+        <button onclick="redirectTo('{{ url_for('decodificar') }}')">Decodificar Mensaje</button>
+    </main>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+import rsa
+from flask import Flask, render_template, request, send_file
+import os
+
+app = Flask(__name__)
+
+# Generar claves RSA
+(public_key, private_key) = rsa.newkeys(512)
+
+# Ruta al índice
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+# Ruta para esconder el mensaje usando RSA
+@app.route('/hideMessage', methods=['GET', 'POST'])
+def esconder():
+    if request.method == 'POST':
+        mensaje = request.form['mensaje']
+        
+        # Verificar mensaje
+        if not mensaje:
+            return "<h1>Error: El mensaje no puede estar vacío.</h1><a href='/'>Regresar</a>"
+        
+        # Encriptar mensaje con la clave pública
+        mensaje_cifrado = rsa.encrypt(mensaje.encode('utf-8'), public_key)
+        
+        # Convertir el mensaje cifrado a una representación legible
+        mensaje_codificado = ' '.join(map(str, mensaje_cifrado))
+        
+        # Crear una receta usando el mensaje codificado
+        plantilla_path = "plantilla_receta.txt"
+        if not os.path.exists(plantilla_path):
+            return "<h1>Error: No se encontró la plantilla de receta.</h1><a href='/'>Regresar</a>"
+        
+        with open(plantilla_path, 'r') as file:
+            plantilla_receta = file.read()
+        
+        receta_codificada = plantilla_receta.replace("{mensaje_codificado}", mensaje_codificado)
+        
+        # Guardar la receta en un archivo
+        filepath = "receta.txt"
+        with open(filepath, 'w') as file:
+            file.write(receta_codificada)
+        
+        return send_file(filepath, as_attachment=True)
+    
+    return render_template('hideMessage.html')
+
+# Ruta para decodificar el mensaje
+@app.route('/decodificar', methods=['GET', 'POST'])
+def decodificar():
+    if request.method == 'POST':
+        clave_privada = private_key  # En una implementación real, la clave se almacenaría de forma segura
+        
+        # Procesar receta cargada
+        receta = None
+        if 'archivo' in request.files and request.files['archivo'].filename != '':
+            file = request.files['archivo']
+            receta = file.read().decode('utf-8')
+        else:
+            receta = request.form['receta']
+        
+        if not receta:
+            return "<h1>Error: No se ingresó una receta válida.</h1><a href='/'>Regresar</a>"
+        
+        # Extraer el mensaje codificado de la receta
+        try:
+            mensaje_codificado = receta.split("{mensaje_codificado}")[1].strip()
+            mensaje_cifrado = bytes(map(int, mensaje_codificado.split()))
+        except:
+            return "<h1>Error: Formato de receta inválido.</h1><a href='/'>Regresar</a>"
+        
+        # Decodificar mensaje con la clave privada
+        try:
+            mensaje_descifrado = rsa.decrypt(mensaje_cifrado, clave_privada).decode('utf-8')
+        except:
+            return "<h1>Error: La clave no coincide o el mensaje es inválido.</h1><a href='/'>Regresar</a>"
+        
+        return f"<h1>Mensaje decodificado: {mensaje_descifrado}</h1><a href='/'>Regresar</a>"
+    
+    return render_template('decodificar.html')
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+EXPLICACIÓN
+Generación de Claves:
+
+Se crean claves pública y privada usando la función rsa.newkeys(512).
+La clave pública cifra el mensaje, mientras que la privada lo descifra.
+Cifrado con RSA:
+
+rsa.encrypt(mensaje.encode('utf-8'), public_key) cifra el mensaje usando la clave pública.
+El mensaje cifrado se convierte a una representación legible para ser insertado en la receta.
+Descifrado con RSA:
+
+rsa.decrypt(mensaje_cifrado, private_key) descifra el mensaje usando la clave privada.
+Plantilla de Receta:
+
+La plantilla debe incluir un marcador como {mensaje_codificado} donde se insertará el mensaje cifrado.

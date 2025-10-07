@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Hide Message</title>
+</head>
+<body>
+    <header>
+        <h1>StegaBake</h1>
+        <p>Oculta tu mensaje.</p>
+    </header>
+    <main>
+        <form action="{{ url_for('hideMessage') }}" method="POST">
+            <label for="mensaje">Ingresa tu mensaje:</label><br>
+            <textarea id="mensaje" name="mensaje" rows="4" cols="50" required></textarea><br><br>
+            <label for="clave">Clave (número):</label><br>
+            <input type="text" id="clave" name="clave" required autocomplete="off"><br><br>
+            <button type="submit">Esconder</button>
+            <button type="button" onclick="location.href='{{ url_for('index') }}'">Cancelar</button>
+        </form>
+    </main>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>
